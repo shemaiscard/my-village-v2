@@ -209,16 +209,17 @@ function emitSmoke() {
     smokeParticles.push({
         x: 755 + (Math.random()-0.5)*5,
         y: 400,
-        vx: (Math.random()-0.5)*4 + 3,  // gentle wind drift right
-        vy: 12 + Math.random()*8,        // slow rise
+        vx: (Math.random()-0.5)*8 + 4,   // scene units per SECOND, gentle drift right
+        vy: 22 + Math.random()*14,        // scene units per SECOND, slow rise
         life: 1.0, rad: 4 + Math.random()*4
     });
 }
 function emitRain() {
-    for (let k = 0; k < 8; k++) {
+    for (let k = 0; k < 10; k++) {
         rainParticles.push({
-            x: Math.random()*1100, y: 700,
-            vx: -0.5, vy: -(8 + Math.random()*5),
+            x: Math.random()*1300 - 100, y: 710,
+            vx: -25,          // scene units per SECOND (slant left)
+            vy: -(260 + Math.random()*40),  // scene units per SECOND (fall)
             life: 1.0
         });
     }
@@ -229,15 +230,19 @@ function updateParticles(dt) {
 
     for (let i = smokeParticles.length-1; i >= 0; i--) {
         const p = smokeParticles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.rad += 0.25; p.life -= dt*0.35;
+        p.x  += p.vx * dt;           // dt-scaled movement
+        p.y  += p.vy * dt;
+        p.vx *= (1 - dt * 0.5);      // horizontal drift slows as particle ages
+        p.rad += 5 * dt;             // expand ~5 units/sec
+        p.life -= dt * 0.32;         // lives ~3 seconds
         if (p.life <= 0) smokeParticles.splice(i,1);
     }
     for (let i = rainParticles.length-1; i >= 0; i--) {
         const p = rainParticles[i];
-        p.x += p.vx; p.y += p.vy;
-        p.life -= dt*1.5;
-        if (p.life <= 0 || p.y < 0) rainParticles.splice(i,1);
+        p.x  += p.vx * dt;           // dt-scaled movement
+        p.y  += p.vy * dt;
+        p.life -= dt * 0.9;
+        if (p.life <= 0 || p.y < 60) rainParticles.splice(i,1);
     }
 }
 
@@ -407,13 +412,26 @@ function render(ts) {
         dc(p.x, p.y, p.rad, v,v,v, 14);
     }
 
-    // ---- RAIN particles ----------------------------------------------------
+    // ---- RAIN particles — slanted quad streaks matching native GL_LINES ----
+    // Each drop is a thin angled quad: 2px wide, ~14px long, slanted left
+    const DT_STREAK = 0.055;  // streak length = 1/18th sec of travel
     for (const p of rainParticles) {
-        const rl = 0.6+0.4*p.life;
+        const alpha = 0.55 + 0.3*p.life;
+        // Head and tail of the streak
+        const tx = p.vx * DT_STREAK;   // ~-1.4
+        const ty = p.vy * DT_STREAK;   // ~-14.3
+        // Perpendicular direction (normalised, scaled to half-width = 1.5)
+        const len = Math.sqrt(tx*tx + ty*ty);
+        const nx = -ty/len * 1.5;
+        const ny =  tx/len * 1.5;
+        // quad: 4 corners of the streak
+        const ax = p.x + nx,      ay = p.y + ny;
+        const bx = p.x - nx,      by = p.y - ny;
+        const cx = p.x+tx - nx,   cy = p.y+ty - ny;
+        const dx = p.x+tx + nx,   dy = p.y+ty + ny;
         dynVerts.push(
-            p.x, p.y,           0.5,0.7,rl,
-            p.x+1, p.y,         0.5,0.7,rl,
-            p.x+p.vx*3, p.y+p.vy*3, 0.3,0.5,rl*0.5
+            ax,ay, 0.75,0.80,0.95,   bx,by, 0.75,0.80,0.95,   cx,cy, 0.5,0.6,0.8,
+            ax,ay, 0.75,0.80,0.95,   cx,cy, 0.5,0.6,0.8,       dx,dy, 0.5,0.6,0.8
         );
     }
 

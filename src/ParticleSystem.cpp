@@ -85,11 +85,14 @@ void ParticleSystem::update(float deltaTime, ParticleType type) {
 // Render:  smoke = expanding translucent quads
 //          rain  = 2-pixel wide slanted line streaks
 // ---------------------------------------------------------------------------
-void ParticleSystem::render() {
+// ---------------------------------------------------------------------------
+void ParticleSystem::render() { renderWithTod(0.8f); }
+
+void ParticleSystem::renderWithTod(float timeOfDay) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // --- Smoke: rounded square blobs ----------------------------------------
+    // --- Smoke: expanding translucent square blobs --------------------------
     glBegin(GL_QUADS);
     for (const auto& p : particles) {
         if (p.type != 0) continue;
@@ -102,20 +105,37 @@ void ParticleSystem::render() {
     }
     glEnd();
 
-    // --- Rain: slanted streaks using GL_LINES --------------------------------
-    // Each streak spans ~1/18th second of travel (matches vx/vy direction)
-    // vx=-25, vy=-260 over dt=0.055 → dx=-1.4, dy=-14.4 — a visible angled dash
-    const float DT_STREAK = 0.055f;
-    glLineWidth(1.8f);
+    // --- Rain: velocity-aligned slanted streaks -----------------------------
+    // At night: silver-white; at daytime: slightly blue-tinted
+    // Two passes: bright head, faint longer tail for depth
+    const float DT_HEAD = 0.055f;   // head streak  (~14px)
+    const float DT_TAIL = 0.12f;    // tail streak  (~31px, dimmer)
+
+    // Blend night→day colour: night=(0.80,0.85,0.90), day=(0.60,0.72,0.95)
+    float rR = 0.80f - 0.20f * timeOfDay;
+    float rG = 0.85f - 0.13f * timeOfDay;
+    float rB = 0.90f + 0.05f * timeOfDay;
+    float rA = 0.75f;
+
+    // Faint tail pass (drawn first, underneath)
+    glLineWidth(1.2f);
     glBegin(GL_LINES);
     for (const auto& p : particles) {
         if (p.type != 1) continue;
-        glColor4f(p.r, p.g, p.b, p.a);
-        // Head of streak (current position)
+        glColor4f(rR, rG, rB, rA * 0.35f);
+        glVertex2f(p.x - p.vx * DT_HEAD, p.y - p.vy * DT_HEAD);
+        glVertex2f(p.x - p.vx * DT_TAIL, p.y - p.vy * DT_TAIL);
+    }
+    glEnd();
+
+    // Bright head pass (on top)
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+    for (const auto& p : particles) {
+        if (p.type != 1) continue;
+        glColor4f(rR, rG, rB, rA * p.life);
         glVertex2f(p.x, p.y);
-        // Tail of streak (where particle was one DT_STREAK ago)
-        glVertex2f(p.x - p.vx * DT_STREAK,
-                   p.y - p.vy * DT_STREAK);
+        glVertex2f(p.x - p.vx * DT_HEAD, p.y - p.vy * DT_HEAD);
     }
     glEnd();
     glLineWidth(1.0f);

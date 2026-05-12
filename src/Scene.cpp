@@ -415,8 +415,9 @@ void Scene::render(Shader& shader)
     drawOverlay(timeOfDay, absTime);
 
     // 3. Particles
-    smoke->render();
-    if (isRaining) rain->render();
+    smoke->renderWithTod(timeOfDay);
+    if (isRaining) rain->renderWithTod(timeOfDay);
+
 
     glMatrixMode(GL_PROJECTION); glPopMatrix();
     glMatrixMode(GL_MODELVIEW);  glPopMatrix();

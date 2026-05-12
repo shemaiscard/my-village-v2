@@ -22,6 +22,7 @@ public:
     
     void update(float deltaTime, ParticleType type);
     void render();
+    void renderWithTod(float timeOfDay);
     
     void emitSmoke(float x, float y);
     void emitRain(float windowWidth, float windowHeight);
