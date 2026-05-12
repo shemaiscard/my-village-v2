@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Village V2 | Interactive Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode">
+    <div class="glass-container">
+        <header>
+            <h1>My Village <span class="v2-badge">V2</span></h1>
+            <p>OpenGL C++ · WebGL 2.0 · Interactive Portfolio</p>
+        </header>
+
+        <main>
+            <div class="canvas-wrapper">
+                <canvas id="glCanvas" width="1100" height="700" oncontextmenu="event.preventDefault()"></canvas>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label>🕐 Time of Day <span id="timeLabel" style="font-weight:600;margin-left:8px;">☀️ Noon</span></label>
+                    <input type="range" id="timeSlider" min="0" max="100" value="80">
+                    <div class="time-labels">
+                        <span>🌙 Night</span>
+                        <span>🌅 Dawn</span>
+                        <span>☀️ Day</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>🌦️ Weather</label>
+                    <button id="rainToggle" class="btn">🌧️ Toggle Rain</button>
+                </div>
+
+                <div class="stats">
+                    <p>Engine: <strong>WebGL 2.0 / C++</strong></p>
+                    <p>Graphics: <strong>GLSL ES 3.0</strong></p>
+                    <p>Keys (native): <strong>R = Rain · ESC = Quit</strong></p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Shema Nkindi Giscard · Built with Antigravity</p>
+        </footer>
+    </div>
+
+    <script src="village.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Compiled binaries and objects
+bin/
+obj/
+
+# Build artifacts
+*.o
+*.a
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Local server / test outputs
+*.log
