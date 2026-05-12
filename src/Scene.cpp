@@ -212,15 +212,16 @@ static void drawOverlay(float tod, float absT)
         imCircle(moonX+18, moonY+8, 32, skyR, skyG, skyB);         // crescent bite
 
         // STARS
-        srand(42);
-        for (int s = 0; s < 50; s++) {
-            float sx = 20.0f + (rand() % 1060);
-            float sy = 395.0f + (rand() % 270);
-            float sr = 1.5f + (s % 3) * 0.8f;
-            float twinkle = 0.5f + 0.5f*sinf(absT*2.0f + s*1.3f);
-            imCircle(sx, sy, sr, twinkle, twinkle, twinkle*0.9f, 8);
+        // STARS — positions computed via hash, never touching rand() state
+        for (int s = 0; s < 55; s++) {
+            // Deterministic scatter: two independent LCG steps per star
+            float sx = 20.0f  + fmodf(s * 373.7f + 117.3f, 1060.0f);
+            float sy = 398.0f + fmodf(s * 251.3f +  83.9f,  265.0f);
+            float sr = 1.2f + (s % 3) * 0.9f;
+            float twinkle = 0.45f + 0.55f * sinf(absT * 1.8f + s * 1.37f);
+            imCircle(sx, sy, sr, twinkle, twinkle, twinkle * 0.88f, 8);
         }
-        srand(time(nullptr)); // restore random seed
+
 
         // Soft moon glow
         glEnable(GL_BLEND);
